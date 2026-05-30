@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KOLEKYON — Garajım</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:      #0a0a0f;
+      --surface: #12121a;
+      --card:    #1a1a26;
+      --border:  #2a2a40;
+      --accent:  #e63946;
+      --accent2: #ff6b35;
+      --gold:    #ffd60a;
+      --text:    #eaeaf0;
+      --muted:   #7a7a9a;
+      --green:   #2ecc71;
+      --font-hero: 'Bebas Neue', sans-serif;
+      --font-ui:   'Rajdhani', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* ══ EKRANLAR ══ */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; }
+
+    /* ══ GİRİŞ EKRANI ══ */
+    #loginScreen {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #loginScreen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(230,57,70,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(230,57,70,0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .login-logo {
+      font-family: var(--font-hero);
+      font-size: 4rem;
+      letter-spacing: 8px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-logo span { color: var(--accent); }
+
+    .login-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      margin-bottom: 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #fff;
+      color: #1a1a26;
+      border: none;
+      padding: 0.9rem 2rem;
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn-google:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .google-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* ══ ANA UYGULAMA ══ */
+    #appScreen {
+      flex-direction: column;
+    }
+
+    /* ── NAVBAR ── */
+    .app-nav {
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .app-nav-logo {
+      font-family: var(--font-hero);
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      color: var(--text);
+    }
+
+    .app-nav-logo span { color: var(--accent); }
+
+    .app-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      object-fit: cover;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── SEKMELER ── */
+    .app-tabs {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      padding: 0 1.5rem;
+      gap: 0;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 0.9rem 1.2rem;
+      font-family: var(--font-ui);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-btn:hover { color: var(--text); }
+
+    /* ── İÇERİK ── */
+    .app-content {
+      flex: 1;
+      padding: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── ÖZET KARTLAR ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat-card-number {
+      font-family: var(--font-hero);
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      display: block;
+    }
+
+    .stat-card-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── ARA / TARA BUTON ── */
+    .action-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background: #c1121f;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.7rem 1.5rem;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* ── ARABA KARTLARI ── */
+    .cars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .car-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem;
+      transition: border-color 0.2s, transform 0.2s;
+      position: relative;
+    }
+
+    .car-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .car-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .car-emoji {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .car-brand {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .car-model {
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+    }
+
+    .car-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .car-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+    }
+
+    .car-condition {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .condition-loose { background: rgba(46,204,113,0.15); color: var(--green); }
+    .condition-mint  { background: rgba(255,214,10,0.15);  color: var(--gold); }
+    .condition-damaged { background: rgba(230,57,70,0.15); color: var(--accent); }
+
+    .car-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.3rem 0.7rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-delete:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── BOŞ DURUM ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .empty-title {
+      font-family: var(--font-hero);
+      font-size: 1.5rem;
+      letter-spacing: 3px;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ══ MODAL ══ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-family: var(--font-hero);
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover { color: var(--accent); }
+
+    .modal-body { padding: 1.5rem; }
+
+    /* ── SCAN MODAL ── */
+    .scan-step { display: none; }
+    .scan-step.active { display: block; }
+
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1rem;
+    }
+
+    .upload-area:hover {
+      border-color: var(--accent);
+      background: rgba(230,57,70,0.05);
+    }
+
+    .upload-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+    .upload-text { color: var(--muted); font-size: 0.95rem; }
+    .upload-text strong { color: var(--accent); }
+
+    #photoInput { display: none; }
+
+    .preview-img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* ── TARAMA SONUCU ── */
+    .scan-result-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .scan-result-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .result-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .result-field:last-child { border-bottom: none; }
+    .result-field-label { color: var(--muted); }
+    .result-field-value { font-weight: 600; }
+
+    /* ── FORM ── */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.65rem 0.9rem;
+      border-radius: 6px;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .form-input:focus,
+    .form-select:focus { border-color: var(--accent); }
+
+    .form-select option { background: var(--surface); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    /* ── LOADING ── */
+    .loading-box {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: var(--green); }
+    .toast.error { border-color: var(--accent); }
+
+    /* ── CONFIDENCE BAR ── */
+    .confidence-bar {
+      background: var(--border);
+      border-radius: 99px;
+      height: 6px;
+      margin-top: 0.75rem;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.4s ease;
+    }
+
+    .confidence-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ── MANUAL EKLE ── */
+    #addModal .modal { max-width: 420px; }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════
+       GİRİŞ EKRANI
+  ══════════════════════ -->
+  <div id="loginScreen" class="screen active">
+    <div class="login-logo">KOL<span>E</span>KYO<span>N</span></div>
+    <p class="login-sub">Diecast Koleksiyon Takip</p>
+    <a id="loginBtn" class="btn-google" href="#">
+      <svg class="google-icon" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      Google ile Giriş Yap
+    </a>
+  </div>
+
+  <!-- ══════════════════════
+       ANA UYGULAMA
+  ══════════════════════ -->
+  <div id="appScreen" class="screen">
+
+    <!-- NAVBAR -->
+    <nav class="app-nav">
+      <div class="app-nav-logo">KOL<span>E</span>KYO<span>N</span></div>
+      <div class="app-nav-right">
+        <div class="user-info">
+          <img id="userAvatar" class="user-avatar" src="" alt="Avatar" />
+          <span id="userName" class="user-name"></span>
+        </div>
+        <button class="btn-logout" onclick="logout()">Çıkış</button>
+      </div>
+    </nav>
+
+    <!-- SEKMELER -->
+    <div class="app-tabs">
+      <button class="tab-btn active" onclick="switchTab('collection', this)">🏎️ Koleksiyonum</button>
+      <button class="tab-btn" onclick="switchTab('wishlist', this)">⭐ İsteklerim</button>
+    </div>
+
+    <!-- İÇERİK -->
+    <div class="app-content">
+
+      <!-- KOLEKSİYON SEKMESİ -->
+      <div id="tab-collection" class="tab-content active">
+
+        <!-- İSTATİSTİKLER -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-card-number" id="statTotal">0</span>
+            <span class="stat-card-label">Toplam</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card-number" id="statMint">0</span>
+            <span class="stat-card-label">Mint</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card-number" id="statBrands">0</span>
+            <span class="stat-card-label">Marka</span>
+          </div>
+        </div>
+
+        <!-- BUTONLAR -->
+        <div class="action-bar">
+          <button class="btn-primary" onclick="openScanModal()">
+            📸 Fotoğraf Tara
+          </button>
+          <button class="btn-secondary" onclick="openAddModal()">
+            ✏️ Manuel Ekle
+          </button>
+        </div>
+
+        <!-- ARABA LİSTESİ -->
+        <div id="collectionGrid" class="cars-grid"></div>
+
+        <!-- BOŞ DURUM -->
+        <div id="collectionEmpty" class="empty-state" style="display:none;">
+          <span class="empty-icon">🏎️</span>
+          <div class="empty-title">GARAJINİZ BOŞ</div>
+          <p>İlk arabanı eklemek için fotoğraf tara veya manuel gir</p>
+        </div>
+
+      </div>
+
+      <!-- İSTEK LİSTESİ SEKMESİ -->
+      <div id="tab-wishlist" class="tab-content">
+
+        <div class="action-bar">
+          <button class="btn-secondary" onclick="openAddModal('wishlist')">
+            ⭐ İstek Listesine Ekle
+          </button>
+        </div>
+
+        <div id="wishlistGrid" class="cars-grid"></div>
+
+        <div id="wishlistEmpty" class="empty-state" style="display:none;">
+          <span class="empty-icon">⭐</span>
+          <div class="empty-title">İSTEK LİSTESİ BOŞ</div>
+          <p>Aradığın arabaları buraya ekle</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════
+       SCAN MODAL
+  ══════════════════════ -->
+  <div id="scanModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">📸 ARABA TARA</div>
+        <button class="modal-close" onclick="closeModal('scanModal')">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- STEP 1: Fotoğraf Seç -->
+        <div id="scanStep1" class="scan-step active">
+          <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+            <span class="upload-icon">📷</span>
+            <div class="upload-text">
+              <strong>Fotoğraf seç</strong> veya buraya tıkla<br>
+              <small>Arabanın altındaki yazıyı ya da barkodu göster</small>
+            </div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)" />
+          <img id="previewImg" class="preview-img" src="" alt="Önizleme" />
+          <button id="scanBtn" class="btn-primary" style="width:100%; justify-content:center; display:none;" onclick="startScan()">
+            🤖 Tara
+          </button>
+        </div>
+
+        <!-- STEP 2: Taranıyor -->
+        <div id="scanStep2" class="scan-step">
+          <div class="loading-box">
+            <div class="spinner"></div>
+            <div class="loading-text">Google Vision analiz ediyor...</div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Sonuç + Form -->
+        <div id="scanStep3" class="scan-step">
+
+          <div class="scan-result-box">
+            <div class="scan-result-title">🤖 AI Tespiti</div>
+            <div id="scanResultFields"></div>
+            <div class="confidence-bar">
+              <div class="confidence-fill" id="confidenceFill" style="width:0%"></div>
+            </div>
+            <div class="confidence-label" id="confidenceLabel"></div>
+          </div>
+
+          <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">
+            Bilgileri düzenleyebilirsin:
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Marka</label>
+            <select class="form-select" id="scanBrand">
+              <option value="Hot Wheels">Hot Wheels</option>
+              <option value="Matchbox">Matchbox</option>
+              <option value="Maisto">Maisto</option>
+              <option value="Bburago">Bburago</option>
+              <option value="Majorette">Majorette</option>
+              <option value="Tomica">Tomica</option>
+              <option value="Greenlight">Greenlight</option>
+              <option value="Diğer">Diğer</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Model</label>
+            <input type="text" class="form-input" id="scanModel" placeholder="Bone Shaker" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Yıl</label>
+              <input type="number" class="form-input" id="scanYear" placeholder="2021" min="1990" max="2030" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ölçek</label>
+              <select class="form-select" id="scanScale">
+                <option value="1:64">1:64</option>
+                <option value="1:43">1:43</option>
+                <option value="1:32">1:32</option>
+                <option value="1:18">1:18</option>
+                <option value="1:24">1:24</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Renk</label>
+              <input type="text" class="form-input" id="scanColor" placeholder="Red" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Durum</label>
+              <select class="form-select" id="scanCondition">
+                <option value="loose">Açık</option>
+                <option value="mint">Mint</option>
+                <option value="damaged">Hasarlı</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Seri (opsiyonel)</label>
+            <input type="text" class="form-input" id="scanSeries" placeholder="HW HOT TRUCKS" />
+          </div>
+
+          <button class="btn-primary" style="width:100%; justify-content:center;" onclick="addFromScan()">
+            ✅ Koleksiyona Ekle
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════
+       MANUEL EKLE MODAL
+  ══════════════════════ -->
+  <div id="addModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="addModalTitle">✏️ ARABA EKLE</div>
+        <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label">Marka</label>
+          <select class="form-select" id="addBrand">
+            <option value="Hot Wheels">Hot Wheels</option>
+            <option value="Matchbox">Matchbox</option>
+            <option value="Maisto">Maisto</option>
+            <option value="Bburago">Bburago</option>
+            <option value="Majorette">Majorette</option>
+            <option value="Tomica">Tomica</option>
+            <option value="Greenlight">Greenlight</option>
+            <option value="Diğer">Diğer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Model *</label>
+          <input type="text" class="form-input" id="addModel" placeholder="Bone Shaker" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Yıl</label>
+            <input type="number" class="form-input" id="addYear" placeholder="2021" min="1990" max="2030" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ölçek</label>
+            <select class="form-select" id="addScale">
+              <option value="1:64">1:64</option>
+              <option value="1:43">1:43</option>
+              <option value="1:32">1:32</option>
+              <option value="1:18">1:18</option>
+              <option value="1:24">1:24</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Renk</label>
+            <input type="text" class="form-input" id="addColor" placeholder="Red" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Durum</label>
+            <select class="form-select" id="addCondition">
+              <option value="loose">Açık</option>
+              <option value="mint">Mint</option>
+              <option value="damaged">Hasarlı</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Seri (opsiyonel)</label>
+          <input type="text" class="form-input" id="addSeries" placeholder="HW HOT TRUCKS" />
+        </div>
+
+        <button class="btn-primary" style="width:100%; justify-content:center;" id="addSubmitBtn" onclick="submitAdd()">
+          ✅ Ekle
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────
+    var WORKER_URL = 'https://kolekyon.enesseker2113-599.workers.dev';
+    var currentUser = null;
+    var addModalMode = 'collection';
+    var scanCarInfo = null;
+
+    // ── BAŞLANGIÇ ────────────────────────────────────
+    window.addEventListener('load', function () {
+      // URL'de token var mı? (OAuth callback'ten döndü)
+      var urlParams = new URLSearchParams(window.location.search);
+      var token = urlParams.get('token');
+      var name = urlParams.get('name');
+      var avatar = urlParams.get('avatar');
+
+      if (token) {
+        localStorage.setItem('kolekyon_token', token);
+        localStorage.setItem('kolekyon_name', name || '');
+        localStorage.setItem('kolekyon_avatar', avatar || '');
+        // URL'yi temizle
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      var savedToken = localStorage.getItem('kolekyon_token');
+      if (savedToken) {
+        currentUser = {
+          id: savedToken,
+          username: localStorage.getItem('kolekyon_name') || 'Kullanıcı',
+          avatar: localStorage.getItem('kolekyon_avatar') || '',
+        };
+        showApp();
+      } else {
+        showLogin();
+      }
+
+      // Google Login butonunu ayarla
+      document.getElementById('loginBtn').href = WORKER_URL + '/auth/login';
+    });
+
+    // ── EKRAN KONTROLÜ ───────────────────────────────
+    function showLogin() {
+      document.getElementById('loginScreen').classList.add('active');
+      document.getElementById('appScreen').classList.remove('active');
+    }
+
+    function showApp() {
+      document.getElementById('loginScreen').classList.remove('active');
+      document.getElementById('appScreen').classList.add('active');
+
+      document.getElementById('userName').textContent = currentUser.username;
+      if (currentUser.avatar) {
+        document.getElementById('userAvatar').src = currentUser.avatar;
+      }
+
+      loadCollection();
+    }
+
+    function logout() {
+      localStorage.removeItem('kolekyon_token');
+      localStorage.removeItem('kolekyon_name');
+      localStorage.removeItem('kolekyon_avatar');
+      currentUser = null;
+      showLogin();
+    }
+
+    // ── SEKME KONTROLÜ ───────────────────────────────
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+
+      btn.classList.add('active');
+      document.getElementById('tab-' + tabName).classList.add('active');
+
+      if (tabName === 'wishlist') {
+        loadWishlist();
+      }
+    }
+
+    // ── API İSTEKLERİ ────────────────────────────────
+    function apiRequest(path, method, body) {
+      var options = {
+        method: method || 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('kolekyon_token'),
+          'Content-Type': 'application/json',
+        },
+      };
+
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+
+      return fetch(WORKER_URL + path, options).then(function (r) { return r.json(); });
+    }
+
+    // ── KOLEKSİYON YÜKLE ────────────────────────────
+    function loadCollection() {
+      apiRequest('/api/collection').then(function (data) {
+        if (!data.success) {
+          showToast('Koleksiyon yüklenemedi', 'error');
+          return;
+        }
+
+        var collection = data.collection;
+        var grid = document.getElementById('collectionGrid');
+        var empty = document.getElementById('collectionEmpty');
+
+        // İstatistikler
+        document.getElementById('statTotal').textContent = collection.length;
+        var mintCount = collection.filter(function (c) { return c.condition === 'mint'; }).length;
+        document.getElementById('statMint').textContent = mintCount;
+        var brands = new Set(collection.map(function (c) { return c.brand; }));
+        document.getElementById('statBrands').textContent = brands.size;
+
+        if (collection.length === 0) {
+          grid.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+
+        empty.style.display = 'none';
+        grid.innerHTML = '';
+
+        collection.forEach(function (car) {
+          grid.appendChild(createCarCard(car, 'collection'));
+        });
+      }).catch(function () {
+        showToast('Bağlantı hatası', 'error');
+      });
+    }
+
+    // ── İSTEK LİSTESİ YÜKLE ─────────────────────────
+    function loadWishlist() {
+      apiRequest('/api/wishlist').then(function (data) {
+        if (!data.success) {
+          return;
+        }
+
+        var wishlist = data.wishlist;
+        var grid = document.getElementById('wishlistGrid');
+        var empty = document.getElementById('wishlistEmpty');
+
+        if (wishlist.length === 0) {
+          grid.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+
+        empty.style.display = 'none';
+        grid.innerHTML = '';
+
+        wishlist.forEach(function (car) {
+          grid.appendChild(createCarCard(car, 'wishlist'));
+        });
+      });
+    }
+
+    // ── ARABA KARTI ──────────────────────────────────
+    function createCarCard(car, type) {
+      var div = document.createElement('div');
+      div.className = 'car-card';
+
+      var conditionClass = 'condition-' + (car.condition || 'loose');
+      var conditionText = { loose: 'Açık', mint: 'Mint', damaged: 'Hasarlı' };
+
+      var metaTags = '';
+      if (car.year) { metaTags += '<span class="car-tag">' + car.year + '</span>'; }
+      if (car.scale) { metaTags += '<span class="car-tag">' + car.scale + '</span>'; }
+      if (car.series) { metaTags += '<span class="car-tag">' + car.series + '</span>'; }
+
+      var footerContent = '';
+      if (type === 'collection') {
+        footerContent = '<span class="car-condition ' + conditionClass + '">' + (conditionText[car.condition] || 'Açık') + '</span>';
+        footerContent += '<button class="btn-delete" onclick="removeFromCollection(' + car.collection_id + ')">Sil</button>';
+      } else {
+        footerContent = '<span style="color:var(--muted); font-size:0.8rem;">⭐ İstek listesi</span>';
+      }
+
+      div.innerHTML = '<div class="car-card-header">'
+        + '<div class="car-emoji">🏎️</div>'
+        + '<div>'
+        + '<div class="car-brand">' + (car.brand || 'Bilinmiyor') + '</div>'
+        + '<div class="car-model">' + (car.model || 'Model yok') + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="car-meta">' + metaTags + '</div>'
+        + '<div class="car-card-footer">' + footerContent + '</div>';
+
+      return div;
+    }
+
+    // ── SCAN MODAL ───────────────────────────────────
+    function openScanModal() {
+      document.getElementById('scanStep1').classList.add('active');
+      document.getElementById('scanStep2').classList.remove('active');
+      document.getElementById('scanStep3').classList.remove('active');
+      document.getElementById('previewImg').style.display = 'none';
+      document.getElementById('scanBtn').style.display = 'none';
+      document.getElementById('photoInput').value = '';
+      scanCarInfo = null;
+      document.getElementById('scanModal').classList.add('open');
+    }
+
+    function handlePhoto(input) {
+      if (!input.files || input.files.length === 0) { return; }
+
+      var file = input.files[0];
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        var preview = document.getElementById('previewImg');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        document.getElementById('scanBtn').style.display = 'flex';
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function startScan() {
+      var input = document.getElementById('photoInput');
+      if (!input.files || input.files.length === 0) {
+        showToast('Önce fotoğraf seç', 'error');
+        return;
+      }
+
+      var file = input.files[0];
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        var base64 = e.target.result.split(',')[1];
+
+        // Step 2 göster
+        document.getElementById('scanStep1').classList.remove('active');
+        document.getElementById('scanStep2').classList.add('active');
+
+        apiRequest('/api/scan', 'POST', { image: base64 }).then(function (data) {
+          if (!data.success) {
+            showToast('Tarama hatası: ' + data.error, 'error');
+            document.getElementById('scanStep1').classList.add('active');
+            document.getElementById('scanStep2').classList.remove('active');
+            return;
+          }
+
+          scanCarInfo = data.carInfo;
+
+          // Formu doldur
+          fillScanForm(data.carInfo);
+
+          // Step 3 göster
+          document.getElementById('scanStep2').classList.remove('active');
+          document.getElementById('scanStep3').classList.add('active');
+        }).catch(function () {
+          showToast('Bağlantı hatası', 'error');
+          document.getElementById('scanStep1').classList.add('active');
+          document.getElementById('scanStep2').classList.remove('active');
+        });
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function fillScanForm(info) {
+      // Result box
+      var fields = '';
+      if (info.brand)  { fields += resultField('Marka', info.brand); }
+      if (info.model)  { fields += resultField('Model', info.model); }
+      if (info.year)   { fields += resultField('Yıl', info.year); }
+      if (info.scale)  { fields += resultField('Ölçek', info.scale); }
+      if (info.color)  { fields += resultField('Renk', info.color); }
+      if (info.barcode){ fields += resultField('Barkod', info.barcode); }
+      if (!fields)     { fields = '<div style="color:var(--muted); font-size:0.85rem;">Yazı okunamadı, lütfen manuel gir</div>'; }
+
+      document.getElementById('scanResultFields').innerHTML = fields;
+
+      var confidence = info.confidence || 0;
+      document.getElementById('confidenceFill').style.width = confidence + '%';
+      document.getElementById('confidenceLabel').textContent = 'Güven: ' + confidence + '%';
+
+      // Form alanlarını doldur
+      if (info.brand) {
+        var brandSelect = document.getElementById('scanBrand');
+        for (var i = 0; i < brandSelect.options.length; i++) {
+          if (brandSelect.options[i].value.toLowerCase() === info.brand.toLowerCase()) {
+            brandSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      if (info.model)  { document.getElementById('scanModel').value = info.model; }
+      if (info.year)   { document.getElementById('scanYear').value = info.year; }
+      if (info.scale)  {
+        var scaleSelect = document.getElementById('scanScale');
+        for (var i = 0; i < scaleSelect.options.length; i++) {
+          if (scaleSelect.options[i].value === info.scale) {
+            scaleSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      if (info.color)  { document.getElementById('scanColor').value = info.color; }
+      if (info.series) { document.getElementById('scanSeries').value = info.series; }
+    }
+
+    function resultField(label, value) {
+      return '<div class="result-field">'
+        + '<span class="result-field-label">' + label + '</span>'
+        + '<span class="result-field-value">' + value + '</span>'
+        + '</div>';
+    }
+
+    function addFromScan() {
+      var carInfo = {
+        brand: document.getElementById('scanBrand').value,
+        model: document.getElementById('scanModel').value,
+        year: parseInt(document.getElementById('scanYear').value) || null,
+        scale: document.getElementById('scanScale').value,
+        color: document.getElementById('scanColor').value,
+        series: document.getElementById('scanSeries').value,
+        barcode: scanCarInfo ? scanCarInfo.barcode : null,
+        confidence: scanCarInfo ? scanCarInfo.confidence : 0,
+      };
+
+      if (!carInfo.model) {
+        showToast('Model adı zorunlu!', 'error');
+        return;
+      }
+
+      var condition = document.getElementById('scanCondition').value;
+
+      apiRequest('/api/collection/add', 'POST', { carInfo: carInfo, condition: condition }).then(function (data) {
+        if (data.duplicate) {
+          showToast('Bu araba zaten koleksiyonunda!', 'error');
+          return;
+        }
+
+        if (data.success) {
+          showToast((carInfo.model || 'Araba') + ' eklendi!', 'success');
+          closeModal('scanModal');
+          loadCollection();
+        } else {
+          showToast('Hata: ' + data.error, 'error');
+        }
+      });
+    }
+
+    // ── MANUEL EKLE ──────────────────────────────────
+    function openAddModal(mode) {
+      addModalMode = mode || 'collection';
+      var title = addModalMode === 'wishlist' ? '⭐ İSTEK LİSTESİ EKLE' : '✏️ ARABA EKLE';
+      document.getElementById('addModalTitle').textContent = title;
+      document.getElementById('addModal').classList.add('open');
+    }
+
+    function submitAdd() {
+      var carInfo = {
+        brand: document.getElementById('addBrand').value,
+        model: document.getElementById('addModel').value,
+        year: parseInt(document.getElementById('addYear').value) || null,
+        scale: document.getElementById('addScale').value,
+        color: document.getElementById('addColor').value,
+        series: document.getElementById('addSeries').value,
+        confidence: 100,
+      };
+
+      if (!carInfo.model) {
+        showToast('Model adı zorunlu!', 'error');
+        return;
+      }
+
+      var condition = document.getElementById('addCondition').value;
+      var endpoint = addModalMode === 'wishlist' ? '/api/wishlist/add' : '/api/collection/add';
+
+      apiRequest(endpoint, 'POST', { carInfo: carInfo, condition: condition }).then(function (data) {
+        if (data.duplicate) {
+          showToast('Bu araba zaten koleksiyonunda!', 'error');
+          return;
+        }
+
+        if (data.success) {
+          showToast((carInfo.model || 'Araba') + ' eklendi!', 'success');
+          closeModal('addModal');
+
+          // Formu temizle
+          document.getElementById('addModel').value = '';
+          document.getElementById('addYear').value = '';
+          document.getElementById('addColor').value = '';
+          document.getElementById('addSeries').value = '';
+
+          if (addModalMode === 'wishlist') {
+            loadWishlist();
+          } else {
+            loadCollection();
+          }
+        } else {
+          showToast('Hata: ' + data.error, 'error');
+        }
+      });
+    }
+
+    // ── SİL ──────────────────────────────────────────
+    function removeFromCollection(collectionId) {
+      if (!confirm('Bu arabayı koleksiyondan silmek istediğine emin misin?')) { return; }
+
+      apiRequest('/api/collection/remove', 'POST', { collectionId: collectionId }).then(function (data) {
+        if (data.success) {
+          showToast('Araba silindi', 'success');
+          loadCollection();
+        } else {
+          showToast('Silme hatası', 'error');
+        }
+      });
+    }
+
+    // ── MODAL ─────────────────────────────────────────
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    // Overlay'e tıklayınca kapat
+    document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          overlay.classList.remove('open');
+        }
+      });
+    });
+
+    // ── TOAST ─────────────────────────────────────────
+    function showToast(message, type) {
+      var toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + (type || '');
+      toast.classList.add('show');
+
+      setTimeout(function () {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
