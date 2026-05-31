@@ -809,7 +809,7 @@
               <small>Arabanın altındaki yazıyı ya da barkodu göster</small>
             </div>
           </div>
-          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)" />
+          <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(this)" />
           <img id="previewImg" class="preview-img" src="" alt="Önizleme" />
           <button id="scanBtn" class="btn-primary" style="width:100%; justify-content:center; display:none;" onclick="startScan()">
             🤖 Tara
