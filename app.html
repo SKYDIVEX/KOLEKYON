@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     :root {
       --bg:      #0a0a0f;
@@ -1210,39 +1211,84 @@
       }
 
       var file = input.files[0];
-      var reader = new FileReader();
 
-      reader.onload = function (e) {
-        var base64 = e.target.result.split(',')[1];
+      // Step 2 göster
+      document.getElementById('scanStep1').classList.remove('active');
+      document.getElementById('scanStep2').classList.add('active');
+      document.querySelector('#scanStep2 .loading-text').textContent = 'Tesseract.js yazı okuyor...';
 
-        // Step 2 göster
-        document.getElementById('scanStep1').classList.remove('active');
-        document.getElementById('scanStep2').classList.add('active');
-
-        apiRequest('/api/scan', 'POST', { image: base64 }).then(function (data) {
-          if (!data.success) {
-            showToast('Tarama hatası: ' + data.error, 'error');
-            document.getElementById('scanStep1').classList.add('active');
-            document.getElementById('scanStep2').classList.remove('active');
-            return;
+      // Tesseract.js ile OCR yap
+      Tesseract.recognize(file, 'eng+tur', {
+        logger: function(m) {
+          if (m.status === 'recognizing text') {
+            var pct = Math.round((m.progress || 0) * 100);
+            document.querySelector('#scanStep2 .loading-text').textContent = 'Yazı okunuyor... %' + pct;
           }
+        }
+      }).then(function(result) {
+        var rawText = result.data.text || '';
+        var carInfo = parseCarText(rawText);
+        carInfo.rawText = rawText;
 
-          scanCarInfo = data.carInfo;
+        scanCarInfo = carInfo;
+        fillScanForm(carInfo);
 
-          // Formu doldur
-          fillScanForm(data.carInfo);
+        document.getElementById('scanStep2').classList.remove('active');
+        document.getElementById('scanStep3').classList.add('active');
+      }).catch(function(err) {
+        showToast('OCR hatası: ' + err.message, 'error');
+        document.getElementById('scanStep1').classList.add('active');
+        document.getElementById('scanStep2').classList.remove('active');
+      });
+    }
 
-          // Step 3 göster
-          document.getElementById('scanStep2').classList.remove('active');
-          document.getElementById('scanStep3').classList.add('active');
-        }).catch(function () {
-          showToast('Bağlantı hatası', 'error');
-          document.getElementById('scanStep1').classList.add('active');
-          document.getElementById('scanStep2').classList.remove('active');
-        });
-      };
+    // OCR metninden araba bilgisi çıkar
+    function parseCarText(text) {
+      var carInfo = { brand: null, model: null, series: null, year: null, color: null, scale: null, confidence: 0 };
+      var upper = text.toUpperCase();
+      var lines = text.split('
+').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 1; });
 
-      reader.readAsDataURL(file);
+      // Marka
+      var brands = ['HOT WHEELS', 'MATCHBOX', 'MAISTO', 'BBURAGO', 'MAJORETTE', 'TOMICA', 'SIKU', 'GREENLIGHT'];
+      for (var i = 0; i < brands.length; i++) {
+        if (upper.includes(brands[i])) {
+          carInfo.brand = brands[i] === 'HOT WHEELS' ? 'Hot Wheels' : brands[i].charAt(0) + brands[i].slice(1).toLowerCase();
+          carInfo.confidence += 30;
+          break;
+        }
+      }
+
+      // Ölçek
+      var scaleMatch = text.match(/1\s*:\s*(\d+)/);
+      if (scaleMatch) { carInfo.scale = '1:' + scaleMatch[1]; carInfo.confidence += 20; }
+
+      // Yıl
+      var yearMatch = text.match(/(199\d|20[012]\d)/);
+      if (yearMatch) { carInfo.year = parseInt(yearMatch[1]); carInfo.confidence += 20; }
+
+      // Seri (HW ile başlayan)
+      var seriesMatch = upper.match(/HW\s+[A-Z ]+/);
+      if (seriesMatch) { carInfo.series = seriesMatch[0].trim(); carInfo.confidence += 10; }
+
+      // Model (marka/seri/yıl/ölçek/ülke dışında kalan satır)
+      for (var j = 0; j < lines.length; j++) {
+        var line = lines[j];
+        var uline = line.toUpperCase();
+        var skip = (carInfo.brand && uline.includes(carInfo.brand.toUpperCase()))
+          || (carInfo.series && uline.includes(carInfo.series))
+          || (scaleMatch && line.includes(scaleMatch[0]))
+          || (yearMatch && line.includes(yearMatch[0]))
+          || uline.includes('MADE IN') || uline.includes('CHINA') || uline.includes('THAILAND')
+          || uline.includes('MALAYSIA') || uline.includes('MATTEL');
+        if (!skip && line.length > 2 && line.length < 40) {
+          carInfo.model = line;
+          carInfo.confidence += 10;
+          break;
+        }
+      }
+
+      return carInfo;
     }
 
     function fillScanForm(info) {
