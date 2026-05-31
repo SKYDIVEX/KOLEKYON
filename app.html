@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
   <style>
     :root {
       --bg:      #0a0a0f;
@@ -810,7 +810,13 @@
               <small>Arabanın altındaki yazıyı ya da barkodu göster</small>
             </div>
           </div>
-          <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(this)" />
+          <div style="display:flex; gap:0.75rem; margin-bottom:1rem;">
+            <button class="btn-secondary" style="flex:1; justify-content:center;" onclick="document.getElementById('cameraInput').click()">📷 Kamera</button>
+            <button class="btn-secondary" style="flex:1; justify-content:center;" onclick="document.getElementById('galleryInput').click()">🖼️ Galeri</button>
+          </div>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handlePhoto(this)" style="display:none;" />
+          <input type="file" id="galleryInput" accept="image/*" onchange="handlePhoto(this)" style="display:none;" />
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(this)" style="display:none;" />
           <img id="previewImg" class="preview-img" src="" alt="Önizleme" />
           <button id="scanBtn" class="btn-primary" style="width:100%; justify-content:center; display:none;" onclick="startScan()">
             🤖 Tara
@@ -1229,6 +1235,7 @@
         var rawText = result.data.text || '';
         var carInfo = parseCarText(rawText);
         carInfo.rawText = rawText;
+        carInfo.confidence = carInfo.confidence || 0;
 
         scanCarInfo = carInfo;
         fillScanForm(carInfo);
@@ -1236,7 +1243,7 @@
         document.getElementById('scanStep2').classList.remove('active');
         document.getElementById('scanStep3').classList.add('active');
       }).catch(function(err) {
-        showToast('OCR hatası: ' + err.message, 'error');
+        showToast('OCR hatası: ' + (err.message || 'Bilinmeyen hata'), 'error');
         document.getElementById('scanStep1').classList.add('active');
         document.getElementById('scanStep2').classList.remove('active');
       });
